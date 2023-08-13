@@ -10,8 +10,7 @@ class ffnnKFold():
 
     def __init__(self,route_dataset:str = None, dataset_name:str = None, limits: (float,float) = (-1.0,1.0),
                  number_of_folds: int = 10):
-        super(ffnnKFold, self).__init__()
-
+        
         self.number_of_folds = number_of_folds
         self.route_dataset = route_dataset
         self.dateset_name = dataset_name
@@ -37,7 +36,7 @@ class ffnnKFold():
         self.size_layers = size_layers
         self.net = nl.net.newff([[0,1]]*self.size_layers[0],[self.size_layers[1],1])
 
-        self.obj_directions = [self.MINIMIZE]
+        self.obj_directions = [-1,]
         self.obj_labels = ['f(x)']
 
         self.lower_bound = [limits[0] for _ in range(self.number_of_variables)]
