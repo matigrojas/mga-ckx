@@ -1,5 +1,6 @@
 import numpy as np
 import time
+import math
 
 class MicroGAFFNN():
 
@@ -10,7 +11,8 @@ class MicroGAFFNN():
                  selection,
                  offspring_population_size: int = 6,
                  population_size: int = 5,
-                 max_evaluations: int = 1000):
+                 max_evaluations: int = 1000,
+                 freq: int = 100):
         self.problem=problem
         
         self.population_size=population_size
@@ -30,6 +32,11 @@ class MicroGAFFNN():
         
         self.start_computing_time = 0
         self.total_computing_time = 0
+
+        self.imp = 0
+        self.freq = freq
+
+        self.history = []
 
     def create_initial_solutions(self):
         population = [self.problem.create_solution()
@@ -57,9 +64,17 @@ class MicroGAFFNN():
 
         self.init_progress()
 
+        print(f"Progress: {self.evaluations}/{self.max_evaluations}, Fitness: {self.get_result().objectives[0]}")
+        self.history.append(self.get_result().objectives[0])
+
         while not self.termination_criterion_is_met():
             self.step()
-            print(f"Progress: {self.evaluations}/{self.max_evaluations}, Fitness: {self.get_result().objectives[0]}")
+            if math.floor(self.evaluations / self.freq) == self.imp:
+                fitness = self.get_result().objectives[0]#np.mean([x.objectives[0] for x in self.solutions])
+                print(f"Progress: {self.evaluations}/{self.max_evaluations}, Fitness: {fitness}")
+                self.history.append(fitness)
+                self.imp += 1
+            
 
         self.total_computing_time = time.time() - self.start_computing_time    
 
@@ -87,7 +102,7 @@ class MicroGAFFNN():
     def reproduction(self, mating_population):
         number_of_parents_to_combine = self.crossover_operator.get_number_of_parents()
 
-        offspring_population = []
+        #offspring_population = []
         for i in range(0, self.offspring_population_size, 2):
             parents = []
             for j in range(2):
@@ -97,13 +112,14 @@ class MicroGAFFNN():
 
             offspring = self.crossover_operator.execute(parents)
 
-            for solution in offspring:
-                self.mutation_operator.execute(solution)
-                offspring_population.append(solution)
-                if len(offspring_population) >= self.offspring_population_size:
-                    break
-
-        return offspring_population
+            if self.mutation_operator is not None:
+                for solution in offspring:
+                    self.mutation_operator.execute(solution)
+                    #offspring_population.append(solution)
+                    #if len(offspring_population) >= self.offspring_population_size:
+                    #    break
+            
+        return offspring
     
     def replacement(self, population, offspring_population):
         population.extend(offspring_population)
@@ -142,3 +158,6 @@ class MicroGAFFNN():
     
     def get_result(self):
         return self.solutions[0]
+    
+    def get_history(self):
+        return self.history

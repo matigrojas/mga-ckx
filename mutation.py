@@ -36,7 +36,7 @@ class UniformMutation():
 
         for i in range(solution.number_of_variables):
             rand = random.random()
-
+            
             if rand <= self.probability:
                 tmp = (random.random() - 0.5) * self.perturbation
                 tmp += solution.variables[i]
